@@ -1,5 +1,8 @@
 import mysql.connector
 from core.config import settings
+import pymysql
+pymysql.install_as_MySQLdb()
+
 
 # Database connection
 def get_db_connection():
@@ -9,3 +12,5 @@ def get_db_connection():
         password=settings.DB_PASSWORD,
         database=settings.DB_NAME
     )
+
+DATABASE_URL = "mysql+pymysql://root:sajjad@localhost/oraaqdb"
