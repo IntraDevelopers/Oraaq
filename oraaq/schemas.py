@@ -8,16 +8,13 @@ class RegisterUserRequest(BaseModel):
     password: str
     phone: str
     user_type_id: int
-    email: EmailStr
+    email: Optional[str] = None
 
 
 class LoginRequest(BaseModel):
-    email: EmailStr
+    email: Optional[str] = None
     password: str
-    user_type_id: int
-
-
-
+    role: int
 
 
 class OrderDetail(BaseModel):
@@ -25,22 +22,46 @@ class OrderDetail(BaseModel):
     quantity: int
     unit_price: int
 
-class GenerateOrderRequest(BaseModel):
+# class GenerateOrderRequest(BaseModel):
+#     customer_id: int
+#     order_required_date: str  
+#     category_id: int
+#     customer_amount: int
+#     total_amount: int
+#     radius: int
+#     latitude: float
+#     longitude: float
+#     order_detail: List[OrderDetail]
+
+
+
+class OrderMaster(BaseModel):
     customer_id: int
     order_required_date: str  
     category_id: int
-    order_amount: int
-    total_amount: int
-    radius: int
-    order_details: List[OrderDetail]
+    customer_amount: float
+    total_amount: float
+    radius: float
+    latitude: float
+    longitude: float  
+
+class OrderDetail(BaseModel):
+    service_id: int
+    unit_price: float
+
+class GenerateOrderRequest(BaseModel):
+    order_master: OrderMaster
+    order_detail: List[OrderDetail]
+
+
 
 
 class PostBidRequest(BaseModel):
     order_id: int
     merchant_id: int
     bid_amount: int
-    bid_remarks: str
-    bid_expiration: str
+    bid_remarks: Optional[str] = None 
+    bid_expiration: Optional[str] = None 
 
 
 
@@ -72,7 +93,7 @@ class SocialLoginRequest(BaseModel):
     user_name: str
     email: str
     social_id: str
-    phone: str
+    phone: Optional[str] = None 
     provider: str
     role: int  # 2 for Merchant, 3 for Customer
 
@@ -81,3 +102,19 @@ class ChangePasswordRequest(BaseModel):
     user_id: int
     current_password: str
     new_password: str
+
+
+# Request body model
+# class UpdateMerchantProfileRequest(BaseModel):
+#     merchant_id: int
+#     merchant_name: str
+#     merchant_number: str
+#     cnic: str
+#     email: str
+#     business_name: str
+#     latitude: float
+#     longitude: float
+#     opening_time: str
+#     closing_time: str
+#     service_type: int
+#     holidays: str

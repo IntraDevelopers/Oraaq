@@ -1,15 +1,25 @@
 import json
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Request
 import mysql.connector
 from database import get_db_connection
 from fastapi.responses import JSONResponse
 from datetime import datetime
 from decimal import Decimal
+from routes.auth import validate_token
 
 router = APIRouter()
 
 @router.get("/fetchServiceRequests")
-def fetch_service_requests_with_bids(customer_id: int = Query(..., description="Customer ID")):
+def fetch_service_requests_with_bids( request: Request, customer_id: int = Query(..., description="Customer ID")):
+    
+    # Validate token
+    if not validate_token(request):
+        return JSONResponse(
+            status_code=401,
+            content={"status": "error", "message": "Invalid Access Token"}
+        )
+    
+
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
@@ -115,7 +125,7 @@ def fetch_all_service_requests(customer_id: int = Query(..., description="Custom
                 if isinstance(value, datetime):
                     request[key] = value.strftime("%Y-%m-%d %H:%M:%S")  # Convert datetime to string
                 elif isinstance(value, Decimal):
-                    request[key] = float(value)  # Convert Decimal to float
+                    request[key] = int(value) if value == int(value) else float(value)
                 elif key == "services" and value:
                     try:
                         request[key] = json.loads(value)  # Convert JSON string to list

@@ -1,14 +1,23 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 import mysql.connector
 from database import get_db_connection
 from fastapi.responses import JSONResponse
 from schemas import AddOrderRatingRequest
 import json
+from routes.auth import validate_token
 
 router = APIRouter()
 
 @router.post("/addRating")
-def add_order_rating(request: AddOrderRatingRequest):
+def add_order_rating(req: Request, request: AddOrderRatingRequest):
+
+    # Validate token
+    if not validate_token(req):
+        return JSONResponse(
+            status_code=401,
+            content={"status": "error", "message": "Invalid Access Token"}
+        )
+    
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)

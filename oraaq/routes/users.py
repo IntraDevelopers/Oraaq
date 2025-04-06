@@ -1,16 +1,29 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request, Query
 from schemas import RegisterUserRequest
 import mysql.connector
 import json
 from database import get_db_connection
 from fastapi.responses import JSONResponse
 from decimal import Decimal
-
+# from fastapi import APIRouter, HTTPException, Query
+# import mysql.connector
+# from database import get_db_connection
+# from fastapi.responses import JSONResponse
+from routes.auth import validate_token
+# from fastapi.responses import JSONResponse
 
 router = APIRouter()
 
-@router.post("/register_user/")
-def register_user(request: RegisterUserRequest):
+@router.post("/register")
+def register_user(req: Request, request: RegisterUserRequest):
+
+    # Validate token
+    if not validate_token(req):
+        return JSONResponse(
+            status_code=401,
+            content={"status": "error", "message": "Invalid Access Token"}
+        )
+
     """Registers a new user directly inside the route file."""
     try:
         conn = get_db_connection()
@@ -37,7 +50,7 @@ def register_user(request: RegisterUserRequest):
             return {
                 "status": "success",
                 "message": "Registration successful.",
-                "data": json.loads(response["data"]) if "data" in response else {}
+                "data": {"user": json.loads(response["json_response"]) if "json_response" in response else {}}
             }
         else:
             raise HTTPException(status_code=500, detail="Unexpected error during registration.")
@@ -58,13 +71,18 @@ def register_user(request: RegisterUserRequest):
 
 
 
-from fastapi import APIRouter, HTTPException, Query
-import mysql.connector
-from database import get_db_connection
-from fastapi.responses import JSONResponse
+
 
 @router.get("/GenerateOtp")
-def generate_otp(user_id: int = Query(..., description="User ID for OTP generation")):
+def generate_otp(request: Request, user_id: int = Query(..., description="User ID for OTP generation")):
+
+    # Validate token
+    if not validate_token(request):
+        return JSONResponse(
+            status_code=401,
+            content={"status": "error", "message": "Invalid Access Token"}
+        )
+
     """
     Generate an OTP for a given user ID.
     """
@@ -121,11 +139,20 @@ def generate_otp(user_id: int = Query(..., description="User ID for OTP generati
 
 @router.get("/getMerchantWithinRadius2")
 def get_merchants_within_radius(
+    request: Request,
     latitude: float = Query(..., description="Latitude of the location"),
     longitude: float = Query(..., description="Longitude of the location"),
     radius: float = Query(..., description="Search radius in kilometers"),
     category_id: int = Query(..., description="Category ID of the service")
 ):
+
+    # Validate token
+    if not validate_token(request):
+        return JSONResponse(
+            status_code=401,
+            content={"status": "error", "message": "Invalid Access Token"}
+        )
+    
     """
     Fetch merchants within the given radius for a specified category.
     """

@@ -1,16 +1,22 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 import mysql.connector
 from database import get_db_connection
 from fastapi.responses import JSONResponse
 import json
+from routes.auth import validate_token  # Import token validation function
 
 router = APIRouter()
 
 @router.get("/getCategories")
-def generate_categories_json():
-    """
-    Fetch active service categories in JSON format.
-    """
+def generate_categories_json(request: Request):
+    
+    # Validate token
+    if not validate_token(request):
+        return JSONResponse(
+            status_code=401,
+            content={"status": "error", "message": "Invalid Access Token"}
+        )
+    
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)

@@ -22,12 +22,21 @@ from database import get_db_connection
 from fastapi.responses import JSONResponse
 import json
 from decimal import Decimal  # Import Decimal module
-
+from routes.auth import validate_token
+from fastapi.responses import JSONResponse
 
 router = APIRouter()
 
 @router.get("/GetInProgressWorkOrdersForMerchant")
 def get_in_progress_work_orders(request: Request):
+
+    # Validate token
+    if not validate_token(request):
+        return JSONResponse(
+            status_code=401,
+            content={"status": "error", "message": "Invalid Access Token"}
+        )
+
     try:
         merchant_id = request.query_params.get("merchant_id")  # Get merchant_id from query params
 
@@ -112,8 +121,17 @@ def convert_decimal_to_float(data):
     return data
 
 @router.get("/merchantWorkorders")
-def get_work_orders(merchant_id: int = Query(..., description="Merchant ID"),
+def get_work_orders(request: Request, 
+                    merchant_id: int = Query(..., description="Merchant ID"),
                     order_status_id: int = Query(..., description="Order Status ID")):
+    
+    # Validate token
+    if not validate_token(request):
+        return JSONResponse(
+            status_code=401,
+            content={"status": "error", "message": "Invalid Access Token"}
+        )
+    
     """
     Fetch work orders for a merchant based on the order status.
     """
@@ -190,8 +208,18 @@ def convert_decimal_to_float(data):
     return data
 
 @router.get("/customerWorkOrders")
-def get_work_orders_customer(customer_id: int = Query(..., description="Customer ID"),
+def get_work_orders_customer(request: Request,
+                             customer_id: int = Query(..., description="Customer ID"),
                              order_status_id: int = Query(..., description="Order Status ID")):
+    
+
+    # Validate token
+    if not validate_token(request):
+        return JSONResponse(
+            status_code=401,
+            content={"status": "error", "message": "Invalid Access Token"}
+        )
+    
     """
     Fetch work orders for a customer based on the order status.
     """

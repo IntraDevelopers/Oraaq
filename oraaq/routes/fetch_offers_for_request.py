@@ -5,11 +5,21 @@ from database import get_db_connection
 from fastapi.responses import JSONResponse
 from datetime import datetime
 from decimal import Decimal
+from routes.auth import validate_token
+
 
 router = APIRouter()
 
 @router.get("/fetch_offers_for_request")
-def fetch_offers_for_request(request: Request):
+def fetch_offers_for_request(request: Request, req: Request):
+
+    # Validate token
+    if not validate_token(request):
+        return JSONResponse(
+            status_code=401,
+            content={"status": "error", "message": "Invalid Access Token"}
+        )
+    
     try:
         request_id = request.query_params.get("request_id")  # Get request_id as a string
 

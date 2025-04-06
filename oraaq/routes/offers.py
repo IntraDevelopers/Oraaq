@@ -1,7 +1,7 @@
 
 
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 import mysql.connector
 from database import get_db_connection
 from fastapi.responses import JSONResponse
@@ -13,6 +13,7 @@ from database import get_db_connection
 from fastapi.responses import JSONResponse
 from datetime import datetime
 from decimal import Decimal
+from routes.auth import validate_token
 
 
 router = APIRouter()
@@ -20,6 +21,14 @@ router = APIRouter()
 
 @router.get("/fetch_offers_for_request")
 def fetch_offers_for_request(request: Request):
+
+    # Validate token
+    if not validate_token(request):
+        return JSONResponse(
+            status_code=401,
+            content={"status": "error", "message": "Invalid Access Token"}
+        )
+
     try:
         request_id = request.query_params.get("request_id")  # Get request_id as a string
 
@@ -84,7 +93,15 @@ def fetch_offers_for_request(request: Request):
 
 
 @router.put("/accept_or_reject_offer")
-def accept_or_reject_offer(request: AcceptRejectOfferRequest):
+def accept_or_reject_offer(req: Request, request: AcceptRejectOfferRequest):
+
+    # Validate token
+    if not validate_token(req):
+        return JSONResponse(
+            status_code=401,
+            content={"status": "error", "message": "Invalid Access Token"}
+        )
+    
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)

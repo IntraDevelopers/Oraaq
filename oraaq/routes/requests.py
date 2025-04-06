@@ -1,23 +1,33 @@
 import json
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Request
 import mysql.connector
 from database import get_db_connection
 from fastapi.responses import JSONResponse
 from datetime import datetime
 from decimal import Decimal
-import json
-from fastapi import APIRouter, HTTPException, Request
-import mysql.connector
-from database import get_db_connection
-from fastapi.responses import JSONResponse
-from datetime import datetime
-from decimal import Decimal
+from routes.auth import validate_token
+
+# import json
+# from fastapi import APIRouter, HTTPException, Request
+# import mysql.connector
+# from database import get_db_connection
+# from fastapi.responses import JSONResponse
+# from datetime import datetime
+# from decimal import Decimal
 
 
 router = APIRouter()
 
-@router.get("/get_all_new_requests")
-def get_all_new_requests(merchant_id: int = Query(..., description="Merchant ID")):
+@router.get("/getAllNewRequests")
+def get_all_new_requests(request: Request, merchant_id: int = Query(..., description="Merchant ID")):
+    
+    # Validate token
+    if not validate_token(request):
+        return JSONResponse(
+            status_code=401,
+            content={"status": "error", "message": "Invalid Access Token"}
+        )
+    
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
@@ -84,6 +94,14 @@ def get_all_new_requests(merchant_id: int = Query(..., description="Merchant ID"
 
 @router.get("/fetchAcceptedRequest")
 def get_accepted_requests(request: Request):
+
+    # Validate token
+    if not validate_token(request):
+        return JSONResponse(
+            status_code=401,
+            content={"status": "error", "message": "Invalid Access Token"}
+        )
+    
     try:
         customer_id = request.query_params.get("customer_id")  # Get customer_id from query params
 

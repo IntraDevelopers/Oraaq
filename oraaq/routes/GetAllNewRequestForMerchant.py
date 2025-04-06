@@ -5,11 +5,20 @@ from database import get_db_connection
 from fastapi.responses import JSONResponse
 from datetime import datetime
 from decimal import Decimal
+from routes.auth import validate_token
+
 
 router = APIRouter()
 
 @router.get("/GetAllNewRequestForMerchant")
 def get_all_new_requests_for_merchant(request: Request):
+
+    # Validate token
+    if not validate_token(request):
+        return JSONResponse(
+            status_code=401,
+            content={"status": "error", "message": "Invalid Access Token"}
+        )
     try:
         merchant_id = request.query_params.get("merchant_id")  # Get merchant_id as a string
 
@@ -47,7 +56,7 @@ def get_all_new_requests_for_merchant(request: Request):
                 if isinstance(value, datetime):
                     request[key] = value.strftime("%Y-%m-%d %H:%M:%S")  # Convert datetime to string
                 elif isinstance(value, Decimal):
-                    request[key] = float(value)  # Convert Decimal to float
+                    request[key] = int(value) if value == int(value) else float(value)
                 elif key == "service_names" and value:
                     request[key] = json.loads(value)  # Convert JSON string to list
 
